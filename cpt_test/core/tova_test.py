@@ -172,10 +172,19 @@ class TOVACore:
         
     def process_response(self):
         """Process a user response (spacebar press)"""
-        if not self.test_running or not self.response_window_active:
+        if not self.test_running:
             return
             
         current_time = time.time()
+        
+        # Always track the last keypress time to prevent rapid responses
+        if current_time - self.last_key_time < 0.2:
+            return
+            
+        self.last_key_time = current_time
+        
+        # Allow response processing regardless of self.response_window_active status
+        # This ensures responses are counted even if window activation is inconsistent
         rt = (current_time - self.stimulus_time) * 1000  # convert to ms
         
         # Count this response

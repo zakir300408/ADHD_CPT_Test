@@ -33,6 +33,8 @@ class CPTCore:
         self.non_target_stimuli = 0
         self.last_key_time = 0
         self.stimulus_time = 0
+        self.response_window_active = False  # Track if response window is active
+        self.current_response_count = 0      # Count responses to current stimulus
         self.participant_info = {}
         self.results = {}
         
@@ -73,6 +75,10 @@ class CPTCore:
         if not self.test_running:
             return None
             
+        # Reset response state for new stimulus
+        self.response_window_active = True
+        self.current_response_count = 0
+        
         # Determine if this should be a target stimulus (X) or non-target
         if random.random() < self.target_ratio:
             self.current_stimulus = self.target_letter
@@ -100,6 +106,9 @@ class CPTCore:
             
         self.last_key_time = current_time
         
+        # Always count the response regardless of response window state
+        self.current_response_count += 1
+        
         # If current stimulus is target, it's a correct response
         if self.current_stimulus == self.target_letter:
             self.correct_responses += 1
@@ -108,6 +117,10 @@ class CPTCore:
         else:
             # If current stimulus is not the target, it's a commission error
             self.commission_errors += 1
+            
+        # Deactivate response window after first response
+        if self.current_response_count >= 1:
+            self.response_window_active = False
             
     def end_test(self):
         """End the test and calculate metrics"""

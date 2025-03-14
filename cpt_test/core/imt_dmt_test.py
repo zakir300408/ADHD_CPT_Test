@@ -43,6 +43,8 @@ class IMTDMTCore:
         self.non_target_stimuli = 0
         self.last_key_time = 0
         self.stimulus_time = 0
+        self.response_window_active = False  # Track if response window is active
+        self.current_response_count = 0      # Count responses to current stimulus
         self.participant_info = {}
         self.results = {
             "IMT": {},
@@ -149,12 +151,14 @@ class IMTDMTCore:
         self.current_stimulus = new_stimulus
         self.stimuli_shown += 1
         self.stimulus_time = time.time()
+        self.response_window_active = True  # Activate response window
+        self.current_response_count = 0     # Reset response count for new stimulus
         
         return self.current_stimulus
         
     def process_response(self):
         """Process a user response (spacebar press)"""
-        if not self.test_running:
+        if not self.test_running or not self.response_window_active:
             return
             
         current_time = time.time()
@@ -164,6 +168,7 @@ class IMTDMTCore:
             return
             
         self.last_key_time = current_time
+        self.current_response_count += 1
         
         # Check if this is a correct response
         is_target = False
@@ -186,6 +191,10 @@ class IMTDMTCore:
         else:
             # False alarm - response to a non-target
             self.false_alarms += 1
+            
+        # Deactivate response window after first response
+        if self.current_response_count >= 1:
+            self.response_window_active = False
             
     def end_test(self):
         """End the test and calculate metrics"""
